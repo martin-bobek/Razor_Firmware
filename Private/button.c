@@ -46,7 +46,7 @@ void ButtonService(void)
     au32DebounceRegister[i] <<= 1;
     au32DebounceRegister[i] |= (u32CurrentEdges >> 8 * i) & 1u;
   }
-  if ((au32DebounceRegister[0] & (DEBOUNCE_PERIOD_MSK & DEBOUNCE_STABLE_MSK) == DEBOUNCE_PERIOD_MSK) 
+  if (((au32DebounceRegister[0] & (DEBOUNCE_PERIOD_MSK | DEBOUNCE_STABLE_MSK)) == DEBOUNCE_PERIOD_MSK)
       && !(((PIOA->PIO_ODSR >> 17) ^ u8ButtonFlags) & 1u))
   {
     au32DebounceRegister[0] = 0u;
@@ -58,7 +58,7 @@ void ButtonService(void)
       EdgeFlags.au8Btn[0] = 1u;
   }
   
-  if ((au32DebounceRegister[1] & (DEBOUNCE_PERIOD_MSK & DEBOUNCE_STABLE_MSK) == DEBOUNCE_PERIOD_MSK) 
+  if (((au32DebounceRegister[1] & (DEBOUNCE_PERIOD_MSK | DEBOUNCE_STABLE_MSK)) == DEBOUNCE_PERIOD_MSK) 
       && !((PIOB->PIO_ODSR ^ (u8ButtonFlags >> 1)) & 1u))
   {
     au32DebounceRegister[1] = 0u;
@@ -70,7 +70,7 @@ void ButtonService(void)
       EdgeFlags.au8Btn[1] = 1u;
   }
   
-  if ((au32DebounceRegister[2] & (DEBOUNCE_PERIOD_MSK & DEBOUNCE_STABLE_MSK) == DEBOUNCE_PERIOD_MSK) 
+  if (((au32DebounceRegister[2] & (DEBOUNCE_PERIOD_MSK | DEBOUNCE_STABLE_MSK)) == DEBOUNCE_PERIOD_MSK) 
       && !(((PIOB->PIO_ODSR >> 1) ^ (u8ButtonFlags >> 2)) & 1u))
   {
     au32DebounceRegister[2] = 0u;
@@ -82,7 +82,7 @@ void ButtonService(void)
       EdgeFlags.au8Btn[2] = 1u;
   }
        
-  if ((au32DebounceRegister[3] & (DEBOUNCE_PERIOD_MSK & DEBOUNCE_STABLE_MSK) == DEBOUNCE_PERIOD_MSK) 
+  if (((au32DebounceRegister[3] & (DEBOUNCE_PERIOD_MSK | DEBOUNCE_STABLE_MSK)) == DEBOUNCE_PERIOD_MSK) 
       && !(((PIOB->PIO_ODSR >> 2) ^ (u8ButtonFlags >> 3)) & 1u))
   {
     au32DebounceRegister[3] = 0u;
