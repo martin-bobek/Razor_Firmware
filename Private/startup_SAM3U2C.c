@@ -1,8 +1,7 @@
-#include "SAM3U2C.H"
+#include "SAM3U2C.h"
 
 extern void CSTACK$$Limit;          /* Brings the stack base pointer into scope */
 void __iar_program_start(void);     /* Declares IAR's entry point of execution */
-void Unused_Handler(void);          /* Substituted for all undefined handlers */
 
 const DeviceVectors __vector_table @ ".intvec" = 
 {
@@ -54,12 +53,11 @@ const DeviceVectors __vector_table @ ".intvec" =
   (void*)UDPHS_Handler,
 };
 
-void Unused_Handler(void)
+static void Unused_Handler(void)
 {
   __disable_irq();
   while(1);
 }
-
 #pragma weak         NMI_Handler = Unused_Handler
 #pragma weak   HardFault_Handler = Unused_Handler
 #pragma weak   MemManage_Handler = Unused_Handler
