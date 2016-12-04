@@ -6,9 +6,6 @@
 void User_Initialization(void);
 void User_Application(void);
 
-static void SystemSleep(void);
-
-
-uint32_t G_u32SystemTick = 0u;
+extern uint32_t G_u32SystemTick;
 
 #endif

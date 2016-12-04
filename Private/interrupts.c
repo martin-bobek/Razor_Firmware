@@ -1,5 +1,5 @@
 #include "SAM3U2C.h"
-#include "button_interrupt.h"
+#include "button_private.h"
 
 extern uint32_t G_u32SystemTick;
 

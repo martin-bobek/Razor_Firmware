@@ -1,5 +1,4 @@
-#include "button.h"
-#include "button_interrupt.h"
+#include "button_private.h"
 
 static uint32_t au32DebounceRegister[4] = { 0u };
 static uint8_t u8ButtonFlags = 0u;
@@ -46,14 +45,19 @@ void ButtonService(void)
     au32DebounceRegister[i] <<= 1;
     au32DebounceRegister[i] |= (u32CurrentEdges >> 8 * i) & 1u;
   }
+  
   if (((au32DebounceRegister[0] & (DEBOUNCE_PERIOD_MSK | DEBOUNCE_STABLE_MSK)) == DEBOUNCE_PERIOD_MSK)
       && !(((PIOA->PIO_ODSR >> 17) ^ u8ButtonFlags) & 1u))
   {
     au32DebounceRegister[0] = 0u;
+    u8ButtonFlags ^= BUTTON0_ACTIVE;
     if (u8ButtonFlags & BUTTON0_ACTIVE)
-      PIOA->PIO_FELLSR = BUTTON_A0_MSK;
-    else
+    {
+      u8ButtonFlags |= BUTTON0_PRESSED;
       PIOA->PIO_REHLSR = BUTTON_A0_MSK;
+    }
+    else
+      PIOA->PIO_FELLSR = BUTTON_A0_MSK;
     if (((PIOA->PIO_ODSR >> 17) ^ u8ButtonFlags) & 1u)
       EdgeFlags.au8Btn[0] = 1u;
   }
@@ -62,10 +66,14 @@ void ButtonService(void)
       && !((PIOB->PIO_ODSR ^ (u8ButtonFlags >> 1)) & 1u))
   {
     au32DebounceRegister[1] = 0u;
+    u8ButtonFlags ^= BUTTON1_ACTIVE;
     if (u8ButtonFlags & BUTTON1_ACTIVE)
-      PIOB->PIO_FELLSR = BUTTON_B1_MSK;
-    else
+    {
+      u8ButtonFlags |= BUTTON1_PRESSED;
       PIOB->PIO_REHLSR = BUTTON_B1_MSK;
+    }
+    else
+      PIOB->PIO_FELLSR = BUTTON_B1_MSK;
     if ((PIOB->PIO_ODSR ^ (u8ButtonFlags >> 1)) & 1u)
       EdgeFlags.au8Btn[1] = 1u;
   }
@@ -74,10 +82,14 @@ void ButtonService(void)
       && !(((PIOB->PIO_ODSR >> 1) ^ (u8ButtonFlags >> 2)) & 1u))
   {
     au32DebounceRegister[2] = 0u;
+    u8ButtonFlags ^= BUTTON2_ACTIVE;
     if (u8ButtonFlags & BUTTON2_ACTIVE)
-      PIOB->PIO_FELLSR = BUTTON_B2_MSK;
-    else
+    {
+      u8ButtonFlags |= BUTTON2_PRESSED;
       PIOB->PIO_REHLSR = BUTTON_B2_MSK;
+    }
+    else
+      PIOB->PIO_FELLSR = BUTTON_B2_MSK;
     if (((PIOB->PIO_ODSR >> 1) ^ (u8ButtonFlags >> 2)) & 1u)
       EdgeFlags.au8Btn[2] = 1u;
   }
@@ -86,10 +98,14 @@ void ButtonService(void)
       && !(((PIOB->PIO_ODSR >> 2) ^ (u8ButtonFlags >> 3)) & 1u))
   {
     au32DebounceRegister[3] = 0u;
+    u8ButtonFlags ^= BUTTON3_ACTIVE;
     if (u8ButtonFlags & BUTTON3_ACTIVE)
-      PIOB->PIO_FELLSR = BUTTON_B3_MSK;
-    else
+    {
+      u8ButtonFlags |= BUTTON3_PRESSED;
       PIOB->PIO_REHLSR = BUTTON_B3_MSK;
+    }
+    else
+      PIOB->PIO_FELLSR = BUTTON_B3_MSK;
     if (((PIOB->PIO_ODSR >> 2) ^ (u8ButtonFlags >> 3)) & 1u)
       EdgeFlags.au8Btn[3] = 1u;
   }

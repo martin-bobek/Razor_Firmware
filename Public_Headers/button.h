@@ -9,6 +9,4 @@ uint8_t WasButtonPressed(Button_Type button);
 void ButtonAcknowledge(Button_Type button);
 uint8_t IsButtonPressed(Button_Type button);
 
-void ButtonService(void);
-
 #endif
