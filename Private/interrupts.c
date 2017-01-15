@@ -2,6 +2,8 @@
 #include "button_private.h"
 
 extern uint32_t G_u32SystemTick;
+volatile EdgeFlags_t EdgeFlags;
+
 
 void SysTick_Handler(void)
 {

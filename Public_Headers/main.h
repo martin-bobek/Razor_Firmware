@@ -6,6 +6,6 @@
 void User_Initialization(void);
 void User_Application(void);
 
-extern uint32_t G_u32SystemTick;
+extern volatile uint32_t G_u32SystemTick;
 
 #endif

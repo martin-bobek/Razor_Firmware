@@ -5,7 +5,7 @@
 
 static void SystemSleep(void);
 
-uint32_t G_u32SystemTick = 0u;
+volatile uint32_t G_u32SystemTick = 0u;
 
 #define MCK_HZ            4000000u
 
@@ -37,6 +37,9 @@ int main()
   PIOB->PIO_IER = BUTTON_ALL_B;                                     /* Enables PIO B button interupts */
   PIOA->PIO_WPMR = PIO_WPMR_WPEN | PIO_WPMR_WPKEY(0x50494F);        /* Enables PIO A write protection */
   PIOB->PIO_WPMR = PIO_WPMR_WPEN | PIO_WPMR_WPKEY(0x50494F);        /* Enables PIO B write protection */
+  NVIC->ISER[0] = ID_Msk(PIOA_IRQn) | ID_Msk(PIOB_IRQn);            /* Enables NVIC interrupt handling for PIO A and B interrupts */
+  NVIC->IP[PIOA_IRQn] = IP_Msk(2);                                  /* Sets PIO A interrupt priority to 2 */
+  NVIC->IP[PIOB_IRQn] = IP_Msk(2);                                  /* Sets PIO B interrupt priority to 2 */
   
   User_Initialization();
   

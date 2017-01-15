@@ -4,7 +4,7 @@
 
 void User_Application(void)
 {
-  Led_Type on, toggle;
+  Led_Type on = 0, toggle = 0;
   if (IsButtonPressed(BUTTON_0))
     on = WHITE;
   else

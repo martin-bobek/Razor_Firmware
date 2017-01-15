@@ -5,10 +5,11 @@
 
 void ButtonService(void);
 
-static volatile union {
+typedef union {
   uint8_t au8Btn[4];
   uint32_t u32All;
-} EdgeFlags;
+} EdgeFlags_t;
+extern volatile EdgeFlags_t EdgeFlags;
 
 #define BUTTON_A0_MSK       PIO_PA17
 #define BUTTON_B1_MSK       PIO_PB0
