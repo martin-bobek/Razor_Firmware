@@ -1,4 +1,4 @@
-#include "button_private.h"
+#include "button.h"
 
 static uint32_t au32DebounceRegister[4] = { 0u };
 static uint8_t u8ButtonFlags = 0u;
@@ -33,18 +33,16 @@ uint8_t IsButtonPressed(Button_Type button)
 
 void ButtonService(void)
 {
-  __disable_irq();
-  PIOA->PIO_IER = BUTTON_A0_MSK;
-  PIOB->PIO_IER = BUTTON_B1_MSK | BUTTON_B2_MSK | BUTTON_B3_MSK;
-  uint32_t u32CurrentEdges = EdgeFlags.u32All;
-  EdgeFlags.u32All = 0;
-  __enable_irq();
+  static uint32_t u32CurrentEdges = 0;
+  u32CurrentEdges |= PIOB->PIO_ISR << 1;
+  u32CurrentEdges |= PIOA->PIO_ISR >> 17;
   
   for (uint8_t i = 0; i < 4; i++)
   {
     au32DebounceRegister[i] <<= 1;
-    au32DebounceRegister[i] |= (u32CurrentEdges >> 8 * i) & 1u;
+    au32DebounceRegister[i] |= (u32CurrentEdges >> i) & 1u;  // perhaps shift u32CurrentEdges by 1 each time (this also clears it).
   }
+  u32CurrentEdges = 0;
   
   if (((au32DebounceRegister[0] & (DEBOUNCE_PERIOD_MSK | DEBOUNCE_STABLE_MSK)) == DEBOUNCE_PERIOD_MSK)
       && !(((PIOA->PIO_PDSR >> 17) ^ u8ButtonFlags) & 1u))
@@ -59,7 +57,7 @@ void ButtonService(void)
     else
       PIOA->PIO_FELLSR = BUTTON_A0_MSK;
     if (!(((PIOA->PIO_PDSR >> 17) ^ u8ButtonFlags) & 1u))
-      EdgeFlags.au8Btn[0] = 1u;
+      u32CurrentEdges |= BUTTON0_ACTIVE;
   }
   
   if (((au32DebounceRegister[1] & (DEBOUNCE_PERIOD_MSK | DEBOUNCE_STABLE_MSK)) == DEBOUNCE_PERIOD_MSK) 
@@ -75,7 +73,7 @@ void ButtonService(void)
     else
       PIOB->PIO_FELLSR = BUTTON_B1_MSK;
     if (!((PIOB->PIO_PDSR ^ (u8ButtonFlags >> 1)) & 1u))
-      EdgeFlags.au8Btn[1] = 1u;
+      u32CurrentEdges |= BUTTON1_ACTIVE;
   }
   
   if (((au32DebounceRegister[2] & (DEBOUNCE_PERIOD_MSK | DEBOUNCE_STABLE_MSK)) == DEBOUNCE_PERIOD_MSK) 
@@ -91,7 +89,7 @@ void ButtonService(void)
     else
       PIOB->PIO_FELLSR = BUTTON_B2_MSK;
     if (!(((PIOB->PIO_PDSR >> 1) ^ (u8ButtonFlags >> 2)) & 1u))
-      EdgeFlags.au8Btn[2] = 1u;
+      u32CurrentEdges |= BUTTON2_ACTIVE;
   }
        
   if (((au32DebounceRegister[3] & (DEBOUNCE_PERIOD_MSK | DEBOUNCE_STABLE_MSK)) == DEBOUNCE_PERIOD_MSK) 
@@ -107,6 +105,6 @@ void ButtonService(void)
     else
       PIOB->PIO_FELLSR = BUTTON_B3_MSK;
     if (!(((PIOB->PIO_PDSR >> 2) ^ (u8ButtonFlags >> 3)) & 1u))
-      EdgeFlags.au8Btn[3] = 1u;
+      u32CurrentEdges |= BUTTON3_ACTIVE;
   }
 }

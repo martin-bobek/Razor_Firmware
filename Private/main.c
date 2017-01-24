@@ -1,7 +1,7 @@
 #include "SAM3U2C.h"
 #include "main.h"
 #include "led.h"
-#include "button_private.h"
+#include "button.h"
 
 static void SystemSleep(void);
 
@@ -22,6 +22,7 @@ volatile uint32_t G_u32SystemTick = 0u;
 
 int main()
 {
+<<<<<<< HEAD
     //__disable_irq();
   
   /* Clock Initialization */
@@ -73,6 +74,9 @@ int main()
   
   
   /* End Clock Initialization */
+=======
+  //__disable_irq();
+>>>>>>> Debouncing
   
   PMC->PMC_PCER0 = ID_Msk(ID_PIOA) | ID_Msk(ID_PIOB);               /* Peripheral clock enabled for PIO A and B */
   PIOA->PIO_PER = BUTTON_ALL_A | HEARTBEAT;                         /* Enables PIO A control of selected pins */
@@ -85,8 +89,11 @@ int main()
   PIOB->PIO_AIMER = BUTTON_ALL_B;                                   /* Enables additional PIO B detection modes for buttons */
   PIOA->PIO_WPMR = PIO_WPMR_WPEN | PIO_WPMR_WPKEY(0x50494F);        /* Enables PIO A write protection */
   PIOB->PIO_WPMR = PIO_WPMR_WPEN | PIO_WPMR_WPKEY(0x50494F);        /* Enables PIO B write protection */
+<<<<<<< HEAD
   
   // Add PMC write protection (WPEN bit)
+=======
+>>>>>>> Debouncing
   
   User_Initialization();
   
