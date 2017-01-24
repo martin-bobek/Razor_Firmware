@@ -10,6 +10,7 @@ volatile uint32_t G_u32SystemTick = 0u;
 #define MCK_HZ            48000000u
 
 #define HEARTBEAT         PIO_PA31
+#define CLOCK_OUT         PIO_PA27
 #define LED_ALL           (RED | ORANGE | YELLOW | GREEN | CYAN | BLUE | PURPLE | WHITE)
 #define BUTTON_ALL_A      BUTTON_A0_MSK
 #define BUTTON_ALL_B      (BUTTON_B1_MSK | BUTTON_B2_MSK | BUTTON_B3_MSK)
@@ -23,32 +24,10 @@ volatile uint32_t G_u32SystemTick = 0u;
 int main()
 {
     //__disable_irq();
-  
-  /* Clock Initialization */
-  
   /*
-  Steps:
-    -Set the MOSCXTEN bit, MOSCSEL bit and write startup time in MOSCXTST field in CKGR_MOR.
-    -poll MOSCXTS bit in PMC_SR until it is on. Then move on.
-    -poll MOSCSELS bit in PMC_SR to see when this change is done. Then move on.
-    -write 1 to DIVA, 7 to MULA, an appropriate value to PLLACOUNT, and 1 to bit 29 in CKGR_PLLAR.
-    -poll LOCKA bit in PMC_SR untill PLLA is running. Then move on.
-    -Write 1 to FWS in EEFC_FMR for EEFC0
-    -Write 1 to Pres in PMC_MCKR
-    -poll MCKRDY bit in PMC_SR. then move on.
-    -Write 2 to CSS in PMC_MCKR.
-    -poll MCKRDY bin in PMC_SR. then move on.
-    -clear MOSCRCEN bit in CKGR_MOR (be carefull not to overwrite previous state of CKGR_MOR) (MOSCRCS in PMC_SR should automatically be cleared indicating clock is off) (can this be safely done in first write)
-    -write 4 to CSS and 1 to PRES in PMC_PCK[0]
-    -write 1 to PCK0 bit in PMC_SCER
-    
   Activate USB UTMI PLL and wait for stabalization.
     turn on and enable crystal oscillator
-    
-  
-  Need to configure PIOA to enable peripheral B output on PA27
   Check LPM bit in PMC_FSMR (could prevent the processor from sleeping)
-  Select between RC and Crystal slow lock: XTALSEL bit in SUPC_CR - default is RC oscillator 
   */
   
   PMC->CKGR_MOR = CKGR_MOR_MOSCXTEN | CKGR_MOR_MOSCRCEN | CKGR_MOR_MOSCXTST(240) | CKGR_MOR_KEY_PASSWD; // where does this value come from
@@ -64,29 +43,23 @@ int main()
   while (!(PMC->PMC_SR & PMC_SR_MCKRDY));
   PMC->PMC_PCK[0] = PMC_PCK_CSS_MCK;
   PMC->PMC_SCER = PMC_SCER_PCK0;
-  
-  
-  
-  
-  //SUPC->SUPC_CR = SUPC_CR_XTALSEL | SUPC_CR_KEY_PASSWD;             /* Selects 32.768kHz (external) crystal oscillator (instead of RC) for Slow Clock */
-  
-  
-  
-  /* End Clock Initialization */
+  SUPC->SUPC_CR = SUPC_CR_XTALSEL | SUPC_CR_KEY_PASSWD;  /* Selects 32.768kHz (external) crystal oscillator (instead of RC) for Slow Clock */
   
   PMC->PMC_PCER0 = ID_Msk(ID_PIOA) | ID_Msk(ID_PIOB);               /* Peripheral clock enabled for PIO A and B */
+  PIOA->PIO_PDR = CLOCK_OUT;                                        /* Gives control of clock out pin to peripherals */
+  PIOA->PIO_ABSR = CLOCK_OUT;                                       /* Gives peripheral B control of clock out pin */
   PIOA->PIO_PER = BUTTON_ALL_A | HEARTBEAT;                         /* Enables PIO A control of selected pins */
   PIOB->PIO_PER = LED_ALL | BUTTON_ALL_B;           // | LCD_ALL    /* Enables PIO B control of selected pins */
   PIOA->PIO_OER = HEARTBEAT;                                        /* Sets selected PIO A pins as output; remaining enabled pins are inputs */
   PIOB->PIO_OER = LED_ALL;                          // | LCD_ALL;   /* Sets selected PIO B pins as output; remaining enabled pins are inputs */
-  PIOA->PIO_PUDR = BUTTON_ALL_A | HEARTBEAT;                        /* Disables PIO A pull-ups for select pins */
+  PIOA->PIO_PUDR = BUTTON_ALL_A | HEARTBEAT | CLOCK_OUT;            /* Disables PIO A pull-ups for select pins */
   PIOB->PIO_PUDR = LED_ALL | BUTTON_ALL_B;          // | LCD_ALL    /* Disables PIO B pull-ups for select pins */
   PIOA->PIO_AIMER = BUTTON_ALL_A;                                   /* Enables additional PIO A detection modes for buttons */
   PIOB->PIO_AIMER = BUTTON_ALL_B;                                   /* Enables additional PIO B detection modes for buttons */
   PIOA->PIO_WPMR = PIO_WPMR_WPEN | PIO_WPMR_WPKEY(0x50494F);        /* Enables PIO A write protection */
   PIOB->PIO_WPMR = PIO_WPMR_WPEN | PIO_WPMR_WPKEY(0x50494F);        /* Enables PIO B write protection */
-
-  // Add PMC write protection (WPEN bit)
+  
+  PMC->PMC_WPMR = PMC_WPMR_WPEN | PMC_WPMR_WPKEY_PASSWD;            /* Enables PMC write protection */
   
   User_Initialization();
   
